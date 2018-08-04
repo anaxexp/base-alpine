@@ -1,0 +1,29 @@
+user="anaxexp"
+srv="/srv"
+if [ -z "${ANAXEXP_HOME}" ];then
+  anaxexp_home="/srv"
+  srv="/srv"
+else
+  anaxexp_home="${ANAXEXP_HOME}"
+  srv="${ANAXEXP_HOME}"
+fi
+state_uuid="0"
+repo="${srv}/.repo"
+docroot="${ANAXEXP_APP_DOCROOT}"
+lockdir="${srv}/.anaxexp/locks"
+etcd_ip="etcd.anaxexp"
+etcd="http://${etcd_ip}:4001/v2/keys"
+backend_host="anaxexp-svc.anaxexp"
+backend_port="8125"
+backend_prefix="http://"
+if [ -n "${backend_host}" ] && [ -n "${backend_port}" ];then
+  backend="${backend_prefix}${backend_host}:${backend_port}"
+  #etcd="${backend}/v2/keys"
+  is_backend=0
+else
+  backend="${etcd}"
+  is_backend=1
+fi
+response_path="anaxexp/states/result"
+[ -z "${ANAXEXP_APP_TYPE}" ] && ANAXEXP_APP_TYPE="drupal"
+[ -z "${ANAXEXP_APP_VERSION}" ] && ANAXEXP_APP_VERSION="7"

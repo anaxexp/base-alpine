@@ -1,0 +1,7 @@
+backend = "etcd"
+#confdir = "${ANAXEXP_CONF}/confd"
+noop = false
+scheme = "http"
+srv_domain = "etcd.anaxexp"
+watch = true
+log-level = "info"

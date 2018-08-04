@@ -1,0 +1,71 @@
+#!/usr/bin/with-contenv sh
+
+# Put env vars into /var/run/anaxexp/env
+if [ ! -d /var/run/anaxexp ]; then
+    mkdir -p /var/run/anaxexp
+    chown $ANAXEXP_USER:$ANAXEXP_GROUP /var/run/anaxexp
+fi
+
+# Filter env vars and store
+printenv | xargs -I{} echo {} | awk ' \
+    BEGIN { FS = "=" }; { \
+        if ($1 != "HOME" \
+            && $1 != "PWD" \
+            && $1 != "PATH" \
+            && $1 != "SHLVL") { \
+            \
+            print ""$1"="$2"" \
+        } \
+    }' > /var/run/anaxexp/env
+
+chown $ANAXEXP_USER:$ANAXEXP_GROUP /var/run/anaxexp/env
+
+# Ensure needed dirs, files, permissions
+chown $ANAXEXP_USER:$ANAXEXP_GROUP $ANAXEXP_HOME
+
+if [ ! -d $ANAXEXP_CONF ]; then
+    mkdir $ANAXEXP_HOME/.ssh
+    chown $ANAXEXP_USER:$ANAXEXP_GROUP $ANAXEXP_HOME/.ssh
+    chmod 700 $ANAXEXP_HOME/.ssh
+fi
+
+# Generate env vars for sh profile
+cat /var/run/anaxexp/env | xargs -I{} echo {} | awk 'BEGIN { FS = "=" }; { print "export "$1"="$2"" }' > /var/run/anaxexp/profile-env
+chown $ANAXEXP_USER:$ANAXEXP_GROUP /var/run/anaxexp/profile-env
+chmod +x /var/run/anaxexp/profile-env
+
+# Create .profile
+if [ ! -f $ANAXEXP_HOME/.profile ]; then
+    # Generate .profile
+    echo -e 'alias ls="ls --color"' >> $ANAXEXP_HOME/.profile
+    echo -e 'alias ll="ls -lah --color"' >> $ANAXEXP_HOME/.profile
+    echo -e '. /var/run/anaxexp/profile-env' >> $ANAXEXP_HOME/.profile
+    chown $ANAXEXP_USER:$ANAXEXP_GROUP $ANAXEXP_HOME/.profile
+fi
+
+if [ ! -d $ANAXEXP_CONF ]; then
+    mkdir $ANAXEXP_CONF
+    chown $ANAXEXP_USER:$ANAXEXP_GROUP $ANAXEXP_CONF
+fi
+
+if [ ! -d $ANAXEXP_LOGS ]; then
+    mkdir $ANAXEXP_LOGS
+    chown $ANAXEXP_USER:$ANAXEXP_GROUP $ANAXEXP_LOGS
+fi
+
+if [ ! -d $ANAXEXP_FILES ]; then
+    mkdir $ANAXEXP_FILES
+    mkdir $ANAXEXP_FILES/public
+    mkdir $ANAXEXP_FILES/private
+    chown -R $ANAXEXP_USER:$ANAXEXP_GROUP $ANAXEXP_FILES
+fi
+
+# Do not create backup directory, because it mounted from the host machine
+if [ -d $ANAXEXP_BACKUPS ]; then
+    chown $ANAXEXP_USER:$ANAXEXP_GROUP $ANAXEXP_BACKUPS
+fi
+
+if [ ! -d $ANAXEXP_HOME/.anaxexp/locks ]; then
+    mkdir -p $ANAXEXP_HOME/.anaxexp/locks
+    chown -R $ANAXEXP_USER:$ANAXEXP_GROUP $ANAXEXP_HOME/.anaxexp
+fi

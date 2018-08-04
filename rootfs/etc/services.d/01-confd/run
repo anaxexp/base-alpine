@@ -1,0 +1,3 @@
+#!/usr/bin/with-contenv sh
+
+exec /opt/anaxexp/tools/bin/confd -watch
